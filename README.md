@@ -102,3 +102,51 @@
 - 用户数据存储在 `face_data` 目录下
 - 人脸识别模型保存为 `face_model.yml`
 - 用户信息保存在 `face_data/users.pkl` 文件中
+
+## 打包说明
+
+### 环境要求
+
+- macOS 操作系统
+- Python 3.x
+- Homebrew (用于安装create-dmg)
+
+### 打包步骤
+
+1. 安装必要的依赖：
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. 给打包脚本添加执行权限：
+   ```bash
+   chmod +x build_app.sh
+   chmod +x create_dmg.sh
+   ```
+
+3. 运行打包脚本生成应用程序：
+   ```bash
+   ./build_app.sh
+   ```
+   打包完成后，应用程序将位于 `dist/FaceRecognition.app`
+
+4. (可选) 创建DMG安装包：
+   ```bash
+   ./create_dmg.sh
+   ```
+   这将生成一个名为 `FaceRecognition.dmg` 的安装包
+
+### 打包文件说明
+
+- `setup.py`: py2app打包配置文件
+- `build_app.sh`: 应用程序打包脚本
+- `create_dmg.sh`: DMG安装包创建脚本
+- `requirements.txt`: 项目依赖列表
+
+### 注意事项
+
+1. 确保所有依赖都已正确安装
+2. 打包前请先测试程序能正常运行
+3. 如果需要自定义应用图标，请准备 `.icns` 格式的图标文件
+4. 打包过程中可能需要较长时间，请耐心等待
+5. 首次运行打包后的应用程序时，需要在系统偏好设置中允许摄像头访问权限
