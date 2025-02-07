@@ -1,6 +1,6 @@
-# 人脸识别系统
+# 智能人脸识别系统
 
-这是一个使用OpenCV和Python实现的人脸识别系统，支持人脸录入和验证功能，具有现代化的图形界面。
+这是一个使用OpenCV和Python实现的人脸识别系统，支持人脸录入和验证功能，具有现代化的图形界面。支持 Intel 和 Apple Silicon (M1/M2) 芯片的 Mac 系统。
 
 ## 功能特性
 
@@ -16,38 +16,94 @@
   - 绿色状态块：验证通过
   - 红色状态块：验证失败
   - 蓝色状态块：录入/采集中
-- 响应式图形用户界面(GUI)
-- 用户搜索功能
+- 响应式图形用户界面(GUI)：
+  - 自适应窗口大小
+  - 支持深色模式
+  - 现代化界面设计
+- 用户搜索功能（实时过滤）
+- 多线程处理保证界面流畅
 
 ## 技术栈
 
 - Python 3.x
 - OpenCV-Python (图像处理和人脸识别)
+  - Intel Mac: opencv-contrib-python
+  - M1/M2 Mac: opencv-contrib-python-headless
 - tkinter (GUI界面)
 - PIL/Pillow (图像处理)
 - Threading (多线程处理)
 - LBPH人脸识别算法
 
+## 系统要求
+
+- macOS 10.13 或更高版本
+- Python 3.x
+- 摄像头设备
+- 支持 Intel 和 Apple Silicon (M1/M2) 芯片
+
 ## 安装依赖
 
-1. 安装所需的 Python 包：
-   
+1. 克隆项目：
    ```bash
-   pip install opencv-contrib-python
-   pip install pillow
+   git clone <repository_url>
+   cd <project_directory>
    ```
 
-注意：必须使用 opencv-contrib-python 而不是普通的 opencv-python，因为人脸识别功能需要 contrib 模块。
+2. 创建虚拟环境（推荐）：
+   ```bash
+   python -m venv venv
+   source venv/bin/activate
+   ```
 
-## 启动方法
+3. 安装依赖：
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-1. 确保已安装所有依赖包
+## 开发环境运行
+
+1. 确保已安装所有依赖
 2. 在命令行中进入程序所在目录
 3. 运行以下命令启动程序：
-
    ```bash
    python face_detector.py
    ```
+
+## 打包说明
+
+### 环境要求
+
+- macOS 10.13 或更高版本
+- Python 3.x
+- py2app
+
+### 打包步骤
+
+1. 给打包脚本添加执行权限：
+   ```bash
+   chmod +x build_app.sh
+   ```
+
+2. 运行打包脚本：
+   ```bash
+   ./build_app.sh
+   ```
+
+脚本会自动：
+- 检测系统架构（Intel/M1）
+- 安装对应版本的依赖
+- 创建开发模式应用进行测试
+- 创建发布版本
+- 复制必要的资源文件
+- 修复动态库链接
+- 设置正确的权限
+
+### 打包文件说明
+
+- `setup.py`: py2app打包配置文件
+- `build_app.sh`: 应用程序打包脚本
+- `requirements.txt`: 项目依赖列表
+- `face_detector.py`: 主程序文件
 
 ## 使用说明
 
@@ -84,18 +140,29 @@
      - 最后验证时间
      - 最后更新时间
 
-5. 其他操作：
-   - 点击"停止"按钮可以停止当前操作
-   - 窗口大小可调整，界面会自适应
+## 项目结构
+
+```
+.
+├── README.md               # 项目说明文档
+├── face_detector.py        # 主程序文件
+├── setup.py               # 打包配置文件
+├── build_app.sh           # 打包脚本
+├── requirements.txt       # 项目依赖
+├── face_data/            # 用户数据目录
+│   └── users.pkl         # 用户信息文件
+└── face_model.yml        # 人脸识别模型文件
+```
 
 ## 注意事项
 
-1. 确保电脑有可用的摄像头
+1. 确保摄像头可用且已授权
 2. 录入人脸时保持适当的光线条件
 3. 录入时尽量展示不同角度的面部表情
 4. 验证时保持自然表情
 5. 首次使用时需要先录入人脸
 6. 程序会自动保存用户数据和训练模型
+7. 对于 M1/M2 Mac，使用 headless 版本的 OpenCV 可能需要额外安装 XQuartz
 
 ## 数据存储
 
@@ -103,50 +170,14 @@
 - 人脸识别模型保存为 `face_model.yml`
 - 用户信息保存在 `face_data/users.pkl` 文件中
 
-## 打包说明
+## 贡献指南
 
-### 环境要求
+1. Fork 项目
+2. 创建特性分支
+3. 提交更改
+4. 推送到分支
+5. 创建 Pull Request
 
-- macOS 操作系统
-- Python 3.x
-- Homebrew (用于安装create-dmg)
+## 许可证
 
-### 打包步骤
-
-1. 安装必要的依赖：
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. 给打包脚本添加执行权限：
-   ```bash
-   chmod +x build_app.sh
-   chmod +x create_dmg.sh
-   ```
-
-3. 运行打包脚本生成应用程序：
-   ```bash
-   ./build_app.sh
-   ```
-   打包完成后，应用程序将位于 `dist/FaceRecognition.app`
-
-4. (可选) 创建DMG安装包：
-   ```bash
-   ./create_dmg.sh
-   ```
-   这将生成一个名为 `FaceRecognition.dmg` 的安装包
-
-### 打包文件说明
-
-- `setup.py`: py2app打包配置文件
-- `build_app.sh`: 应用程序打包脚本
-- `create_dmg.sh`: DMG安装包创建脚本
-- `requirements.txt`: 项目依赖列表
-
-### 注意事项
-
-1. 确保所有依赖都已正确安装
-2. 打包前请先测试程序能正常运行
-3. 如果需要自定义应用图标，请准备 `.icns` 格式的图标文件
-4. 打包过程中可能需要较长时间，请耐心等待
-5. 首次运行打包后的应用程序时，需要在系统偏好设置中允许摄像头访问权限
+[MIT License](LICENSE)

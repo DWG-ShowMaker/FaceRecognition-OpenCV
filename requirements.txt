@@ -1,4 +1,8 @@
-opencv-contrib-python>=4.5.0
+# 根据系统架构选择合适的OpenCV包：
+# Intel Mac:
+# opencv-contrib-python>=4.5.0
+# M1/M2 Mac:
+# opencv-contrib-python-headless>=4.5.0
 pillow>=8.0.0
 numpy>=1.19.0
 py2app>=0.27.0 
