@@ -9,6 +9,7 @@ import os  # 文件和目录操作
 import pickle  # 数据序列化
 from datetime import datetime  # 日期时间处理
 import re  # 正则表达式模块
+import sys  # 系统模块
 
 class FaceRecognitionSystem:
     """
@@ -43,10 +44,10 @@ class FaceRecognitionSystem:
             self.window.destroy()
             return
         
-        # 创建数据存储目录和文件路径
-        self.data_dir = "face_data"  # 用户数据目录
-        self.model_path = "face_model.yml"  # 模型文件路径
-        os.makedirs(self.data_dir, exist_ok=True)  # 确保数据目录存在
+        # 修改数据目录和模型文件的路径
+        self.data_dir = self.get_resource_path("face_data")
+        self.model_path = self.get_resource_path("face_model.yml")
+        os.makedirs(self.data_dir, exist_ok=True)
         
         # 加载用户数据和模型
         self.users = self.load_users()  # 加载用户信息
@@ -357,18 +358,15 @@ class FaceRecognitionSystem:
         
     def stop_camera(self):
         """停止摄像头和视频处理"""
-        self.is_running = False
+        if hasattr(self, 'is_running'):
+            self.is_running = False
         
         # 清除验证结果
         if hasattr(self, 'last_verify_result'):
             delattr(self, 'last_verify_result')
         
-        # 等待视频线程结束
-        if hasattr(self, 'video_thread') and self.video_thread.is_alive():
-            self.video_thread.join(timeout=1.0)
-        
         # 释放摄像头资源
-        if self.cap is not None:
+        if hasattr(self, 'cap') and self.cap is not None:
             self.cap.release()
             self.cap = None
         
@@ -510,36 +508,50 @@ class FaceRecognitionSystem:
                 self.status_label.config(text=f"状态: 录入中 ({len(self.face_samples)}/20)")
                 
                 if len(self.face_samples) == 20:
-                    if self.current_mode == 'recapture':
-                        self.complete_recapture()
-                    else:
-                        self.complete_registration()
+                    # 使用after方法在主线程中执行完成操作
+                    self.window.after(100, self.complete_capture)
         except Exception as e:
             messagebox.showerror("错误", f"采集失败: {str(e)}")
             print(f"采集错误: {e}")
             self.stop_camera()
-            
+
+    def complete_capture(self):
+        """完成采集，根据模式选择后续操作"""
+        try:
+            if self.current_mode == 'recapture':
+                self.complete_recapture()
+            else:
+                self.complete_registration()
+        except Exception as e:
+            messagebox.showerror("错误", f"完成采集失败: {str(e)}")
+            print(f"完成采集错误: {e}")
+        finally:
+            self.stop_camera()
+
     def complete_registration(self):
         """完成人脸注册流程"""
-        # 创建新用户
-        user_id = len(self.users)
-        self.users[user_id] = {
-            'name': self.username_var.get(),
-            'registered_at': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        }
-        
-        # 训练人脸识别模型
-        labels = [user_id] * len(self.face_samples)
-        self.face_recognizer.train(self.face_samples, np.array(labels))
-        
-        # 保存模型和用户数据
-        self.face_recognizer.save(self.model_path)
-        self.save_users()
-        self.update_users_list()
-        
-        messagebox.showinfo("成功", "人脸录入完成！")
-        self.stop_camera()
-        
+        try:
+            # 创建新用户
+            user_id = len(self.users)
+            self.users[user_id] = {
+                'name': self.username_var.get(),
+                'registered_at': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
+            
+            # 训练人脸识别模型
+            labels = [user_id] * len(self.face_samples)
+            self.face_recognizer.train(self.face_samples, np.array(labels))
+            
+            # 保存模型和用户数据
+            self.face_recognizer.save(self.model_path)
+            self.save_users()
+            self.update_users_list()
+            
+            messagebox.showinfo("成功", "人脸录入完成！")
+        except Exception as e:
+            messagebox.showerror("错误", f"注册失败: {str(e)}")
+            print(f"注册错误: {e}")
+
     def handle_verification(self, face_roi):
         """
         处理人脸验证
@@ -871,6 +883,23 @@ class FaceRecognitionSystem:
             return ImageFont.load_default()
         except:
             return ImageFont.load_default()
+
+    def get_resource_path(self, relative_path):
+        """获取资源文件的绝对路径"""
+        if hasattr(sys, '_MEIPASS'):
+            # PyInstaller 创建的临时文件夹
+            base_path = sys._MEIPASS
+        elif 'Contents/Resources' in os.path.abspath(__file__):
+            # py2app 打包后的资源路径
+            base_path = os.path.abspath(os.path.join(
+                os.path.dirname(__file__),
+                '..'  # 回到 Resources 目录
+            ))
+        else:
+            # 开发环境下的路径
+            base_path = os.path.abspath(os.path.dirname(__file__))
+        
+        return os.path.join(base_path, relative_path)
 
 def main():
     """主函数，创建并运行GUI应用"""
